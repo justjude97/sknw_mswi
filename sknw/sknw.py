@@ -2,21 +2,40 @@ import numpy as np
 from numba import jit
 import networkx as nx
 
+"""
+this and mark are used to define a sliding window algorithm. 
+    in mark(), the image is flattened with ravel() and then the offsets corresponding to each of the neighbors is calculated
+"""
 def neighbors(shape):
     dim = len(shape)
+    #creates a square shaped matrix, whose dimensions are all 3, and then excludes the center?
     block = np.ones([3]*dim)
     block[tuple([1]*dim)] = 0
+
+    #get a list of all coordinates of block that aren't the center
     idx = np.where(block>0)
     idx = np.array(idx, dtype=np.uint8).T
+
+    #centers the coordinates on (1, 1)
     idx = np.array(idx-[1]*dim)
+
     acc = np.cumprod((1,)+shape[::-1][:-1])
     return np.dot(idx, acc[::-1])
 
+"""
+uses the linear indices of the neighboring elements (calculated in neighbors(shape)) to find all foreground pixels surrounding a given pixel
+0 = background (target pixel is ignored if background)
+1 = edge
+2 = node
+"""
 @jit(nopython=True) # my mark
 def mark(img, nbs): # mark the array use (0, 1, 2)
     img = img.ravel()
     for p in range(len(img)):
+        #ingnore background elements
         if img[p]==0:continue
+
+        #number of adjacent pixels
         s = 0
         for dp in nbs:
             if img[p+dp]!=0:s+=1
@@ -119,6 +138,9 @@ def build_graph(nodes, edges, multi=False, full=True):
         graph.add_edge(s,e, pts=pts, weight=l)
     return graph
 
+"""
+marks endpoints and notes with more than two neighbors, 1<=n or n>2
+"""
 def mark_node(ske):
     buf = np.pad(ske, (1,1), mode='constant').astype(np.uint16)
     nbs = neighbors(buf.shape)
