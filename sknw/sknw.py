@@ -8,7 +8,7 @@ this and mark are used to define a sliding window algorithm.
 """
 def neighbors(shape):
     dim = len(shape)
-    #creates a square shaped matrix, whose dimensions are all 3, and then excludes the center?
+    #creates a square shaped matrix, whose dimensions are all 3, and then sets the center to 0
     block = np.ones([3]*dim)
     block[tuple([1]*dim)] = 0
 
@@ -16,7 +16,7 @@ def neighbors(shape):
     idx = np.where(block>0)
     idx = np.array(idx, dtype=np.uint8).T
 
-    #centers the coordinates on (1, 1)
+    #centers the coordinates on the center element
     idx = np.array(idx-[1]*dim)
 
     acc = np.cumprod((1,)+shape[::-1][:-1])
