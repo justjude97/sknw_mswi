@@ -147,8 +147,21 @@ def mark_node(ske):
     mark(buf, nbs)
     return buf
     
-def build_sknw(ske, multi=False, iso=True, ring=True, full=True):
-    buf = np.pad(ske, (1,1), mode='constant').astype(np.uint16)
+def build_sknw(skeleton, multi=False, iso=True, ring=True, full=True):
+    """
+    Main function to build the graph from a skeletonized image.
+    
+    Parameters:
+    ske (numpy.ndarray): The skeletonized image.
+    multi (bool): Create a MultiGraph if True.
+    iso (bool): Consider isolated nodes.
+    ring (bool): Consider rings with no branching points. will insert a node in this case
+    full (bool): if true, every edge starts from the node's centroid, else touch the "node block"
+    
+    Returns:
+    networkx.Graph: where the nodes represent branching and end points, and edges represent the pixels connecting those points
+    """
+    buf = np.pad(skeleton, (1,1), mode='constant').astype(np.uint16)
     nbs = neighbors(buf.shape)
     acc = np.cumprod((1,)+buf.shape[::-1][:-1])[::-1]
     mark(buf, nbs)
