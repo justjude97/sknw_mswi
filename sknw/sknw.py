@@ -11,13 +11,12 @@ def neighbors(shape):
     block = np.ones([3]*dim)
     block[tuple([1]*dim)] = 0
 
-    #get a list of all coordinates of block that aren't the center
+    #get relative positions of the neighbor (from the center)
     idx = np.where(block>0)
     idx = np.array(idx, dtype=np.uint8).T
-
-    #centers the coordinates on the center element
     idx = np.array(idx-[1]*dim)
 
+    #compute linear indices
     acc = np.cumprod((1,)+shape[::-1][:-1])
     return np.dot(idx, acc[::-1])
 
@@ -103,7 +102,10 @@ def parse_struc(img, nbs, acc, iso, ring):
     for p in range(len(img)):
         if img[p] == 2:
             isiso, nds = fill(img, p, num, nbs, acc, buf)
-            if isiso and not iso: continue
+
+            if isiso and not iso:
+                continue
+
             num += 1
             nodes.append(nds)
     edges = []
@@ -113,7 +115,10 @@ def parse_struc(img, nbs, acc, iso, ring):
             if img[p+dp]==1:
                 edge = trace(img, p+dp, nbs, acc, buf)
                 edges.append(edge)
-    if not ring: return nodes, edges
+
+    if not ring: 
+        return nodes, edges
+    
     for p in range(len(img)):
         if img[p]!=1: continue
         img[p] = num; num += 1
@@ -127,14 +132,22 @@ def parse_struc(img, nbs, acc, iso, ring):
 # use nodes and edges build a networkx graph
 def build_graph(nodes, edges, multi=False, full=True):
     os = np.array([i.mean(axis=0) for i in nodes])
-    if full: os = os.round().astype(np.uint16)
+
+    if full: 
+        os = os.round().astype(np.uint16)
+
     graph = nx.MultiGraph() if multi else nx.Graph()
+
     for i in range(len(nodes)):
         graph.add_node(i, pts=nodes[i], o=os[i])
-    for s,e,pts in edges:
-        if full: pts[[0,-1]] = os[[s,e]]
+
+    for s, e, pts in edges:
+        if full:
+            pts[[0,-1]] = os[[s,e]]
+
         l = np.linalg.norm(pts[1:]-pts[:-1], axis=1).sum()
         graph.add_edge(s,e, pts=pts, weight=l)
+        
     return graph
 
 """
