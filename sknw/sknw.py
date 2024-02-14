@@ -130,6 +130,10 @@ def parse_struc(img, nbs, acc, iso, ring):
     return nodes, edges
     
 # use nodes and edges build a networkx graph
+"""
+    * if full, add the mean centroid to each edge
+    * nodes is a list of lists containing the image pixels corresponding to each
+"""
 def build_graph(nodes, edges, multi=False, full=True):
     os = np.array([i.mean(axis=0) for i in nodes])
 
@@ -138,11 +142,14 @@ def build_graph(nodes, edges, multi=False, full=True):
 
     graph = nx.MultiGraph() if multi else nx.Graph()
 
+    #add nodes and node pixels of image ('pts')
     for i in range(len(nodes)):
         graph.add_node(i, pts=nodes[i], o=os[i])
 
+    #add nodes and edge pixels ('pts')
     for s, e, pts in edges:
         if full:
+            #set first and last elements of the edge pixels
             pts[[0,-1]] = os[[s,e]]
 
         l = np.linalg.norm(pts[1:]-pts[:-1], axis=1).sum()
